@@ -60,10 +60,11 @@ export const getBannerList = () =>
 export const getCategoryList = (parentId = 0) =>
   request<CategoryDO[]>(`/app-api/product/category/list?parentId=${parentId}`)
 
-export const getProductPage = (params?: { keyword?: string; categoryId?: number; pageNo?: number; pageSize?: number }) => {
+export const getProductPage = (params?: { keyword?: string; categoryId?: number; pageNo?: number; pageSize?: number; sort?: string }) => {
   const qs = new URLSearchParams()
   if (params?.keyword) qs.append('keyword', params.keyword)
   if (params?.categoryId) qs.append('categoryId', String(params.categoryId))
+  if (params?.sort) qs.append('sort', params.sort)
   qs.append('pageNo', String(params?.pageNo ?? 1))
   qs.append('pageSize', String(params?.pageSize ?? 10))
   return request<PageResult<ProductSpu>>(`/app-api/product/spu/page?${qs.toString()}`)

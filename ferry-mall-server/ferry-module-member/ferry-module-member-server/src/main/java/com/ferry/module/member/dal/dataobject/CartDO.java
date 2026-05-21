@@ -1,4 +1,4 @@
-package com.ferry.module.aftermarket.dal.dataobject;
+package com.ferry.module.member.dal.dataobject;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -7,13 +7,16 @@ import java.time.LocalDateTime;
 import lombok.Data;
 
 @Data
-@TableName("aftermarket_record")
-public class AftermarketRecordDO {
+@TableName("member_cart")
+public class CartDO {
     @TableId(type = IdType.AUTO)
     private Long id;
     private Long tenantId;
-    private Long orderId;
-    private String reason;
-    private Integer status;
+    private Long memberId;
+    private Long spuId;
+    private Long skuId;
+    private Integer quantity;
+    private Integer selected;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

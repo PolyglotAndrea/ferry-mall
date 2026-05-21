@@ -70,7 +70,7 @@ public class AftermarketService {
     }
 
     private AftermarketResp toResp(AftermarketRecordDO record) {
-        return new AftermarketResp(record.getId(), record.getOrderId(), record.getReason(), record.getStatus(), statusText(record.getStatus()));
+        return new AftermarketResp(record.getId(), record.getOrderId(), record.getReason(), record.getStatus(), statusText(record.getStatus()), record.getCreatedAt());
     }
 
     private String statusText(Integer status) {

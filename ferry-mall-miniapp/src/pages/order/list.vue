@@ -1,5 +1,9 @@
 <template>
   <view class="order-page">
+    <view class="search-bar">
+      <input v-model="keyword" class="search-input" placeholder="搜索订单号" confirm-type="search" @confirm="onSearch" />
+      <text class="search-btn" @tap="onSearch">搜索</text>
+    </view>
     <view class="tabs">
       <view v-for="t in tabs" :key="t.status ?? -1"
         class="tab" :class="{ active: activeStatus === t.status }" @tap="activeStatus = t.status"
@@ -51,6 +55,7 @@ const tabs = [
 ]
 
 const activeStatus = ref<number | undefined>(undefined)
+const keyword = ref('')
 const orders = ref<OrderResp[]>([])
 const pageNo = ref(1)
 const pageSize = 10
@@ -62,13 +67,17 @@ async function fetchOrders(reset = false) {
   loading.value = true
   try {
     if (reset) { pageNo.value = 1; orders.value = []; hasMore.value = true }
-    const res = await getOrderPage(activeStatus.value, pageNo.value, pageSize)
+    const res = await getOrderPage(activeStatus.value, pageNo.value, pageSize, keyword.value || undefined)
     orders.value.push(...res.list)
     if (res.list.length < pageSize) hasMore.value = false
     else pageNo.value++
   } finally {
     loading.value = false
   }
+}
+
+function onSearch() {
+  fetchOrders(true)
 }
 
 function loadMore() {
@@ -111,6 +120,9 @@ async function onReceive(orderNo: string) {
 
 <style scoped>
 .order-page { height: 100vh; display: flex; flex-direction: column; }
+.search-bar { display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: #fff; border-bottom: 1px solid #f1f5f9; }
+.search-input { flex: 1; height: 64px; background: #f1f5f9; border-radius: 32px; padding: 0 28px; font-size: 28px; }
+.search-btn { color: #2563eb; font-size: 28px; font-weight: 600; }
 .tabs { display: flex; background: #fff; border-bottom: 1px solid #f1f5f9; }
 .tab { flex: 1; text-align: center; padding: 24px 0; font-size: 28px; color: #64748b; }
 .tab.active { color: #2563eb; font-weight: 700; border-bottom: 4px solid #2563eb; }

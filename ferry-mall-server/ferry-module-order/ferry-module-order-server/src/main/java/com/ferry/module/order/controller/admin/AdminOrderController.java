@@ -20,6 +20,6 @@ public class AdminOrderController {
 
     @GetMapping("/page")
     public CommonResult<PageResult<OrderResp>> page(PageParam pageParam) {
-        return CommonResult.success(orderTradeService.page(pageParam));
+        return CommonResult.success(orderTradeService.page(pageParam, null, null));
     }
 }

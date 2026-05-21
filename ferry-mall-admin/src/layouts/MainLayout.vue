@@ -18,7 +18,13 @@
         <el-menu-item index="/settlement/bill"><el-icon><Money /></el-icon><span>结算账单</span></el-menu-item>
         <el-menu-item index="/aftermarket/list"><el-icon><Service /></el-icon><span>售后管理</span></el-menu-item>
         <el-menu-item index="/system/user"><el-icon><Setting /></el-icon><span>系统用户</span></el-menu-item>
-        <el-menu-item index="/marketing/coupon"><el-icon><Present /></el-icon><span>优惠券</span></el-menu-item>
+        <el-sub-menu index="/marketing">
+          <template #title><el-icon><Present /></el-icon><span>营销活动</span></template>
+          <el-menu-item index="/marketing/coupon">优惠券</el-menu-item>
+          <el-menu-item index="/marketing/seckill">秒杀活动</el-menu-item>
+          <el-menu-item index="/marketing/groupon">拼团活动</el-menu-item>
+          <el-menu-item index="/marketing/bargain">砍价活动</el-menu-item>
+        </el-sub-menu>
       </el-menu>
     </el-aside>
     <el-container>

@@ -41,8 +41,14 @@ export const createOrder = (items: { spuId: number; skuId?: number; quantity: nu
     remark
   })
 
-export const getOrderPage = (status?: number, pageNo = 1, pageSize = 10) =>
-  request<PageResult<OrderResp>>(`/app-api/order/page?pageNo=${pageNo}&pageSize=${pageSize}${status !== undefined ? '&status=' + status : ''}`)
+export const getOrderPage = (status?: number, pageNo = 1, pageSize = 10, keyword?: string) => {
+  const qs = new URLSearchParams()
+  qs.append('pageNo', String(pageNo))
+  qs.append('pageSize', String(pageSize))
+  if (status !== undefined) qs.append('status', String(status))
+  if (keyword) qs.append('keyword', keyword)
+  return request<PageResult<OrderResp>>(`/app-api/order/page?${qs.toString()}`)
+}
 
 export const getOrderDetail = (orderNo: string) =>
   request<OrderResp>(`/app-api/order/${orderNo}`)

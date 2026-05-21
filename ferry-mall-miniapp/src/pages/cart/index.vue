@@ -7,24 +7,24 @@
     </view>
     <view v-else>
       <view class="cart-list">
-        <view v-for="item in cart.items" :key="`${item.spuId}-${item.skuId ?? 0}`" class="cart-item">
-          <text class="check" :class="{ checked: item.checked }" @tap="cart.toggle(item.spuId, item.skuId)">
-            {{ item.checked ? '&#x2713;' : '' }}
+        <view v-for="item in cart.items" :key="item.id" class="cart-item">
+          <text class="check" :class="{ checked: item.selected === 1 }" @tap="cart.toggle(item.id)">
+            {{ item.selected === 1 ? '&#x2713;' : '' }}
           </text>
-          <image :src="item.coverUrl" class="item-cover" mode="aspectFill" />
+          <image :src="productMap[item.spuId]?.coverUrl || ''" class="item-cover" mode="aspectFill" />
           <view class="item-info">
-            <view class="item-name">{{ item.name }}</view>
-            <view v-if="item.skuName" class="item-sku">{{ item.skuName }}</view>
+            <view class="item-name">{{ productMap[item.spuId]?.name || '商品加载中...' }}</view>
+            <view v-if="item.skuId && skuMap[item.skuId]" class="item-sku">{{ skuMap[item.skuId].name }}</view>
             <view class="item-bottom">
-              <text class="item-price">¥{{ (item.priceCent / 100).toFixed(2) }}</text>
+              <text class="item-price">¥{{ ((productMap[item.spuId]?.priceCent || 0) / 100).toFixed(2) }}</text>
               <view class="qty-btns">
-                <text class="qty-btn" @tap="cart.updateQuantity(item.spuId, item.skuId, item.quantity - 1)">-</text>
+                <text class="qty-btn" @tap="cart.updateQuantity(item.id, item.quantity - 1)">-</text>
                 <text class="qty-num">{{ item.quantity }}</text>
-                <text class="qty-btn" @tap="cart.updateQuantity(item.spuId, item.skuId, item.quantity + 1)">+</text>
+                <text class="qty-btn" @tap="cart.updateQuantity(item.id, item.quantity + 1)">+</text>
               </view>
             </view>
           </view>
-          <text class="del" @tap="cart.remove(item.spuId, item.skuId)">&#x2715;</text>
+          <text class="del" @tap="onDelete(item.id)">&#x2715;</text>
         </view>
       </view>
       <view class="cart-footer">
@@ -33,7 +33,7 @@
           <text>全选</text>
         </view>
         <view class="total">
-          合计 <text class="total-price">¥{{ (cart.totalCent / 100).toFixed(2) }}</text>
+          合计 <text class="total-price">¥{{ (totalCent / 100).toFixed(2) }}</text>
         </view>
         <view class="settle-btn" :class="{ disabled: cart.checkedCount === 0 }" @tap="onSettle">
           结算({{ cart.checkedCount }})
@@ -45,13 +45,72 @@
 
 <script setup lang="ts">
 import Taro from '@tarojs/taro'
+import { ref, computed, onMounted } from 'vue'
 import { useCartStore } from '@/stores/cart'
+import { getProductDetail, getProductSkuList } from '@/api/product'
+import type { ProductSpu, SkuDO } from '@/api/product'
+
 const cart = useCartStore()
+const productMap = ref<Record<number, ProductSpu>>({})
+const skuMap = ref<Record<number, SkuDO>>({})
+
+const totalCent = computed(() => {
+  return cart.items
+    .filter(i => i.selected === 1)
+    .reduce((s, i) => {
+      const price = productMap.value[i.spuId]?.priceCent || 0
+      return s + price * i.quantity
+    }, 0)
+})
+
+async function fetchProductInfo() {
+  const spuIds = [...new Set(cart.items.map(i => i.spuId))]
+  const skuIds = cart.items.map(i => i.skuId).filter(Boolean) as number[]
+
+  for (const spuId of spuIds) {
+    if (!productMap.value[spuId]) {
+      try {
+        const product = await getProductDetail(spuId)
+        productMap.value[spuId] = product
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  for (const skuId of skuIds) {
+    if (!skuMap.value[skuId]) {
+      try {
+        const item = cart.items.find(i => i.skuId === skuId)
+        if (item) {
+          const skus = await getProductSkuList(item.spuId)
+          for (const sku of skus) {
+            skuMap.value[sku.id] = sku
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }
+}
+
+function onDelete(cartId: number) {
+  Taro.showModal({
+    title: '提示',
+    content: '确定删除该商品？',
+    success: (res) => {
+      if (res.confirm) {
+        cart.remove(cartId)
+      }
+    }
+  })
+}
 
 function goShop() { Taro.switchTab({ url: '/pages/index/index' }) }
 
 function onSettle() {
-  const items = cart.getCheckedItems()
+  const items = cart.items.filter(i => i.selected === 1)
   if (items.length === 0) {
     Taro.showToast({ title: '请选择商品', icon: 'none' })
     return
@@ -63,6 +122,14 @@ function onSettle() {
   }))))
   Taro.navigateTo({ url: `/pages/order/confirm?items=${params}` })
 }
+
+onMounted(() => {
+  cart.fetchCart().then(() => fetchProductInfo())
+})
+
+Taro.useDidShow(() => {
+  cart.fetchCart().then(() => fetchProductInfo())
+})
 </script>
 
 <style scoped>

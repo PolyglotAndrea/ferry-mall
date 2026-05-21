@@ -176,13 +176,19 @@ public class OrderTradeService implements OrderApi {
         return toResp(order, items);
     }
 
-    public PageResult<OrderResp> page(PageParam pageParam) {
+    public PageResult<OrderResp> page(PageParam pageParam, Integer status, String keyword) {
         long memberId = currentMemberId();
+        LambdaQueryWrapper<OrderInfoDO> wrapper = new LambdaQueryWrapper<OrderInfoDO>()
+            .eq(OrderInfoDO::getMemberId, memberId)
+            .orderByDesc(OrderInfoDO::getId);
+        if (status != null) {
+            wrapper.eq(OrderInfoDO::getStatus, status);
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            wrapper.like(OrderInfoDO::getOrderNo, keyword);
+        }
         Page<OrderInfoDO> page = orderInfoMapper.selectPage(
-            new Page<>(pageParam.pageNo(), pageParam.pageSize()),
-            new LambdaQueryWrapper<OrderInfoDO>()
-                .eq(OrderInfoDO::getMemberId, memberId)
-                .orderByDesc(OrderInfoDO::getId));
+            new Page<>(pageParam.pageNo(), pageParam.pageSize()), wrapper);
 
         List<Long> orderIds = page.getRecords().stream().map(OrderInfoDO::getId).toList();
         Map<Long, List<OrderItemDO>> itemMap = orderItemMapper.selectList(

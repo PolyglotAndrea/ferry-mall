@@ -22,7 +22,10 @@ const router = createRouter({
         { path: 'settlement/bill', component: () => import('@/views/settlement/SettlementBillView.vue') },
         { path: 'aftermarket/list', component: () => import('@/views/aftermarket/AftermarketListView.vue') },
         { path: 'system/user', component: () => import('@/views/system/SystemUserListView.vue') },
-        { path: 'marketing/coupon', component: () => import('@/views/marketing/CouponListView.vue') }
+        { path: 'marketing/coupon', component: () => import('@/views/marketing/CouponListView.vue') },
+        { path: 'marketing/seckill', component: () => import('@/views/marketing/SeckillActivityManageView.vue') },
+        { path: 'marketing/groupon', component: () => import('@/views/marketing/GrouponActivityManageView.vue') },
+        { path: 'marketing/bargain', component: () => import('@/views/marketing/BargainActivityManageView.vue') }
       ]
     }
   ]

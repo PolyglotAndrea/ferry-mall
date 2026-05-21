@@ -41,9 +41,22 @@ public class ProductCatalogService implements ProductCatalogApi {
 
     @Override
     public PageResult<ProductSpuSnapshot> page(PageParam pageParam) {
-        Page<ProductSpuDO> page = productSpuMapper.selectPage(new Page<>(pageParam.pageNo(), pageParam.pageSize()), new LambdaQueryWrapper<ProductSpuDO>()
-            .eq(ProductSpuDO::getStatus, 1)
-            .orderByDesc(ProductSpuDO::getId));
+        return page(pageParam, null);
+    }
+
+    public PageResult<ProductSpuSnapshot> page(PageParam pageParam, String sort) {
+        LambdaQueryWrapper<ProductSpuDO> wrapper = new LambdaQueryWrapper<ProductSpuDO>()
+            .eq(ProductSpuDO::getStatus, 1);
+        if ("sales_desc".equals(sort)) {
+            wrapper.orderByDesc(ProductSpuDO::getSales);
+        } else if ("price_asc".equals(sort)) {
+            wrapper.orderByAsc(ProductSpuDO::getPriceCent);
+        } else if ("price_desc".equals(sort)) {
+            wrapper.orderByDesc(ProductSpuDO::getPriceCent);
+        } else {
+            wrapper.orderByDesc(ProductSpuDO::getId);
+        }
+        Page<ProductSpuDO> page = productSpuMapper.selectPage(new Page<>(pageParam.pageNo(), pageParam.pageSize()), wrapper);
         return PageResult.of(page.getRecords().stream().map(this::toProductResp).toList(), page.getTotal(), pageParam.pageSize());
     }
 
