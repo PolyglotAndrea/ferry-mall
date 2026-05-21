@@ -8,6 +8,7 @@
     <dependencies>
         <dependency><groupId>com.ferry</groupId><artifactId>ferry-module-payment-api</artifactId><version>${project.version}</version></dependency>
         <dependency><groupId>com.ferry</groupId><artifactId>ferry-module-order-api</artifactId><version>${project.version}</version></dependency>
+        <dependency><groupId>com.ferry</groupId><artifactId>ferry-module-order-server</artifactId><version>${project.version}</version></dependency>
         <dependency><groupId>com.ferry</groupId><artifactId>ferry-spring-boot-starter-mybatis</artifactId></dependency>
         <dependency><groupId>com.ferry</groupId><artifactId>ferry-spring-boot-starter-security</artifactId></dependency>
         <dependency><groupId>com.ferry</groupId><artifactId>ferry-spring-boot-starter-redis</artifactId></dependency>

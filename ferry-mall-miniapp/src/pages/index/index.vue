@@ -171,7 +171,7 @@
 
 <script setup lang="ts">
 import Taro from '@tarojs/taro'
-import { onMounted, ref, computed, onUnmounted } from 'vue'
+import { onMounted, ref, onUnmounted } from 'vue'
 import { getBannerList, getCategoryList, getProductPage, type BannerDO, type CategoryDO, type ProductSpu } from '@/api/product'
 import { getSeckillActivities, getSeckillProducts, type SeckillProduct } from '@/api/marketing'
 import { getAvailableCoupons, receiveCoupon as apiReceiveCoupon, type CouponResp } from '@/api/coupon'
@@ -289,15 +289,15 @@ onUnmounted(() => {
 })
 
 /* ==================== 页面事件 ==================== */
-function onPullDownRefresh() {
+Taro.usePullDownRefresh(() => {
   loadAll().finally(() => {
     Taro.stopPullDownRefresh()
   })
-}
+})
 
-function onReachBottom() {
+Taro.useReachBottom(() => {
   loadProducts()
-}
+})
 
 /* ==================== 跳转 ==================== */
 function goSearch() { Taro.navigateTo({ url: '/pages/search/index' }) }

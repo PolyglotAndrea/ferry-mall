@@ -43,4 +43,25 @@ public class OrderTimeoutJob {
 
         log.info("[XXL-JOB] 扫描完成，共取消 {} 笔超时订单", timeoutOrders.size());
     }
+
+    @XxlJob("autoConfirmReceipt")
+    public void autoConfirmReceipt() {
+        log.info("[XXL-JOB] 开始扫描待自动确认收货订单");
+        LocalDateTime deadline = LocalDateTime.now().minusDays(15);
+
+        List<OrderInfoDO> shippedOrders = orderInfoMapper.selectList(
+            new LambdaQueryWrapper<OrderInfoDO>()
+                .eq(OrderInfoDO::getStatus, OrderStatusMachine.SHIPPED)
+                .lt(OrderInfoDO::getDeliveryTime, deadline));
+
+        for (OrderInfoDO order : shippedOrders) {
+            OrderStatusMachine.checkTransition(order.getStatus(), OrderStatusMachine.COMPLETED);
+            order.setStatus(OrderStatusMachine.COMPLETED);
+            order.setReceiveTime(LocalDateTime.now());
+            orderInfoMapper.updateById(order);
+            log.info("[XXL-JOB] 订单 {} 已自动确认收货", order.getOrderNo());
+        }
+
+        log.info("[XXL-JOB] 扫描完成，共自动确认收货 {} 笔订单", shippedOrders.size());
+    }
 }

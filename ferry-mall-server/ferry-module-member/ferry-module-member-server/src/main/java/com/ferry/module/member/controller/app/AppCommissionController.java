@@ -5,6 +5,7 @@ import com.ferry.framework.web.core.PageParam;
 import com.ferry.framework.web.core.PageResult;
 import com.ferry.module.member.dal.dataobject.CommissionRecordDO;
 import com.ferry.module.member.dal.dataobject.CommissionUserDO;
+import com.ferry.module.member.dal.dataobject.CommissionWithdrawDO;
 import com.ferry.module.member.service.CommissionService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -54,6 +55,11 @@ public class AppCommissionController {
     public CommonResult<Void> withdraw(@RequestParam Integer amountCent) {
         commissionService.withdraw(10001L, amountCent);
         return CommonResult.success(null);
+    }
+
+    @GetMapping("/withdraw-records")
+    public CommonResult<PageResult<CommissionWithdrawDO>> getWithdrawRecords(PageParam pageParam) {
+        return CommonResult.success(commissionService.getWithdrawRecords(10001L, pageParam));
     }
 
     @PostMapping("/bind-parent")

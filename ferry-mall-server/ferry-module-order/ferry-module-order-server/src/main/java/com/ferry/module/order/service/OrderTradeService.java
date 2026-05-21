@@ -6,6 +6,7 @@ import com.ferry.framework.web.core.PageParam;
 import com.ferry.framework.web.core.PageResult;
 import com.ferry.framework.web.exception.FerryBusinessException;
 import com.ferry.module.marketing.api.CouponApi;
+import com.ferry.module.member.api.CommissionApi;
 import com.ferry.module.order.api.OrderApi;
 import com.ferry.module.order.api.dto.OrderCancelReq;
 import com.ferry.module.order.api.dto.OrderCreateReq;
@@ -37,15 +38,17 @@ public class OrderTradeService implements OrderApi {
     private final ProductCatalogApi productCatalogApi;
     private final InventoryApi inventoryApi;
     private final CouponApi couponApi;
+    private final CommissionApi commissionApi;
 
     public OrderTradeService(OrderInfoMapper orderInfoMapper, OrderItemMapper orderItemMapper,
                              ProductCatalogApi productCatalogApi, InventoryApi inventoryApi,
-                             CouponApi couponApi) {
+                             CouponApi couponApi, CommissionApi commissionApi) {
         this.orderInfoMapper = orderInfoMapper;
         this.orderItemMapper = orderItemMapper;
         this.productCatalogApi = productCatalogApi;
         this.inventoryApi = inventoryApi;
         this.couponApi = couponApi;
+        this.commissionApi = commissionApi;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -153,6 +156,10 @@ public class OrderTradeService implements OrderApi {
         order.setStatus(OrderStatusMachine.COMPLETED);
         order.setReceiveTime(LocalDateTime.now());
         orderInfoMapper.updateById(order);
+
+        if (commissionApi != null) {
+            commissionApi.calculateCommission(order.getMemberId(), orderNo, order.getPayAmountCent());
+        }
 
         return detail(orderNo);
     }

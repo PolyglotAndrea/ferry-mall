@@ -1,7 +1,12 @@
 package com.ferry.module.system.controller.admin;
 
 import com.ferry.framework.web.core.CommonResult;
+import com.ferry.framework.web.core.PageParam;
+import com.ferry.framework.web.core.PageResult;
+import com.ferry.framework.web.tenant.TenantContext;
 import com.ferry.module.system.api.dto.FileResp;
+import com.ferry.module.system.dal.dataobject.SysFileDO;
+import com.ferry.module.system.dal.mapper.SysFileMapper;
 import com.ferry.module.system.service.FileStorageService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,6 +22,7 @@ import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @RestController
@@ -24,9 +30,11 @@ import java.util.UUID;
 public class AdminFileController {
 
     private final FileStorageService fileStorageService;
+    private final SysFileMapper sysFileMapper;
 
-    public AdminFileController(FileStorageService fileStorageService) {
+    public AdminFileController(FileStorageService fileStorageService, SysFileMapper sysFileMapper) {
         this.fileStorageService = fileStorageService;
+        this.sysFileMapper = sysFileMapper;
     }
 
     @PostMapping("/upload")
@@ -37,7 +45,28 @@ public class AdminFileController {
         String path = LocalDate.now() + "/" + UUID.randomUUID() + ext;
 
         FileResp resp = fileStorageService.upload(path, file.getInputStream(), file.getSize(), file.getContentType());
+
+        SysFileDO record = new SysFileDO();
+        record.setTenantId(TenantContext.getTenantId());
+        record.setName(original != null ? original : path);
+        record.setPath(path);
+        record.setUrl(resp.url());
+        record.setContentType(file.getContentType());
+        record.setSize(file.getSize());
+        record.setCreatedAt(LocalDateTime.now());
+        sysFileMapper.insert(record);
+
         return CommonResult.success(resp);
+    }
+
+    @GetMapping("/page")
+    public CommonResult<PageResult<SysFileDO>> page(PageParam pageParam) {
+        com.baomidou.mybatisplus.extension.plugins.pagination.Page<SysFileDO> page = sysFileMapper.selectPage(
+            new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(pageParam.pageNo(), pageParam.pageSize()),
+            new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysFileDO>()
+                .eq(TenantContext.getTenantId() != null, SysFileDO::getTenantId, TenantContext.getTenantId())
+                .orderByDesc(SysFileDO::getId));
+        return CommonResult.success(PageResult.of(page.getRecords(), page.getTotal(), pageParam.pageSize()));
     }
 
     @GetMapping("/download")
@@ -50,9 +79,13 @@ public class AdminFileController {
         }
     }
 
-    @DeleteMapping("/{path}")
-    public CommonResult<Boolean> delete(@PathVariable String path) {
-        fileStorageService.delete(path);
+    @DeleteMapping("/{id}")
+    public CommonResult<Boolean> delete(@PathVariable Long id) {
+        SysFileDO record = sysFileMapper.selectById(id);
+        if (record != null) {
+            fileStorageService.delete(record.getPath());
+            sysFileMapper.deleteById(id);
+        }
         return CommonResult.success(true);
     }
 }

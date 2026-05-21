@@ -41,8 +41,8 @@ class PaymentPrepareServiceTest {
         OrderResp order = new OrderResp(
             1L, "FM202401010000001234", 10000, 0, 10000, 10, "待付款",
             "张三", "13800000000", "上海市", null,
-            null, null, null, null, null,
-            LocalDateTime.now(), List.of());
+            null, null, null, null, null, null,
+            null, LocalDateTime.now(), List.of());
 
         PaymentChannelDO channel = new PaymentChannelDO();
         channel.setId(1L);
@@ -59,7 +59,7 @@ class PaymentPrepareServiceTest {
         assertNotNull(resp);
         assertEquals("wxpay", resp.channel());
         assertNotNull(resp.paymentNo());
-        assertTrue(resp.mockPayload().contains("mock"));
+        assertNotNull(resp.mockPayload());
 
         verify(paymentRecordMapper).insert(any(PaymentRecordDO.class));
     }

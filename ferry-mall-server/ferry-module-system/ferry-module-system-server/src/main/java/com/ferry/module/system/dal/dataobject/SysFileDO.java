@@ -6,15 +6,14 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("sys_user")
-public class SysUserDO {
+@TableName("sys_file")
+public class SysFileDO {
     private Long id;
     private Long tenantId;
-    private String username;
-    private String password;
-    private String nickname;
-    private Long deptId;
-    private Integer status;
+    private String name;
+    private String path;
+    private String url;
+    private String contentType;
+    private Long size;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }

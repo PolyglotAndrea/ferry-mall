@@ -19,6 +19,7 @@ public class PaymentRefundDO {
     public static final int STATUS_FAILED = 30;
     private Integer status;
     private String reason;
+    private String thirdPartyRefundNo;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
