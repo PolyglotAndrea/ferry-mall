@@ -38,3 +38,18 @@ export const getCommissionRecords = (pageNo = 1, pageSize = 20) =>
 
 export const getTeamList = () =>
   request<TeamMember[]>('/app-api/member/commission/team')
+
+export interface CommissionOverview {
+  totalCent: number
+  availableCent: number
+  teamSize: number
+}
+
+export const getCommissionOverview = () =>
+  request<CommissionOverview>('/app-api/member/commission/overview')
+
+export const withdrawCommission = (amountCent: number) =>
+  request<void>(`/app-api/member/commission/withdraw?amountCent=${amountCent}`, 'POST')
+
+export const bindParent = (parentId: number) =>
+  request<void>(`/app-api/member/commission/bind-parent?parentId=${parentId}`, 'POST')

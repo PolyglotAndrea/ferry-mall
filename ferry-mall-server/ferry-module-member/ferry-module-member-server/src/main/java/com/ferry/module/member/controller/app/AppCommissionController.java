@@ -9,6 +9,7 @@ import com.ferry.module.member.service.CommissionService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -42,5 +43,22 @@ public class AppCommissionController {
     @GetMapping("/team")
     public CommonResult<List<CommissionUserDO>> getTeam() {
         return CommonResult.success(commissionService.getTeam(10001L));
+    }
+
+    @GetMapping("/overview")
+    public CommonResult<CommissionService.CommissionOverview> overview() {
+        return CommonResult.success(commissionService.overview(10001L));
+    }
+
+    @PostMapping("/withdraw")
+    public CommonResult<Void> withdraw(@RequestParam Integer amountCent) {
+        commissionService.withdraw(10001L, amountCent);
+        return CommonResult.success(null);
+    }
+
+    @PostMapping("/bind-parent")
+    public CommonResult<Void> bindParent(@RequestParam Long parentId) {
+        commissionService.bindParent(10001L, parentId);
+        return CommonResult.success(null);
     }
 }

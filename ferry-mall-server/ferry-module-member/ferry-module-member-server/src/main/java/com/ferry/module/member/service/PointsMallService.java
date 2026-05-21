@@ -42,6 +42,25 @@ public class PointsMallService {
                 .orderByAsc(PointsProductDO::getSort));
     }
 
+    public PageResult<PointsProductDO> pageProducts(PageParam pageParam) {
+        LambdaQueryWrapper<PointsProductDO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(PointsProductDO::getStatus, 1)
+               .eq(PointsProductDO::getTenantId, TenantContext.getTenantId())
+               .gt(PointsProductDO::getStock, 0)
+               .orderByAsc(PointsProductDO::getSort);
+        Page<PointsProductDO> page = pointsProductMapper.selectPage(
+                new Page<>(pageParam.pageNo(), pageParam.pageSize()), wrapper);
+        return PageResult.of(page.getRecords(), page.getTotal(), pageParam.pageSize());
+    }
+
+    public PointsProductDO getProductDetail(Long productId) {
+        PointsProductDO product = pointsProductMapper.selectById(productId);
+        if (product == null || product.getStatus() != 1) {
+            throw new FerryBusinessException(404, "商品不存在或已下架");
+        }
+        return product;
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public void exchange(Long memberId, Long productId) {
         PointsProductDO product = pointsProductMapper.selectById(productId);
@@ -79,5 +98,15 @@ public class PointsMallService {
                 .eq(PointsExchangeDO::getMemberId, memberId)
                 .eq(PointsExchangeDO::getTenantId, TenantContext.getTenantId())
                 .orderByDesc(PointsExchangeDO::getId));
+    }
+
+    public PageResult<PointsExchangeDO> pageExchangeRecords(Long memberId, PageParam pageParam) {
+        LambdaQueryWrapper<PointsExchangeDO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(PointsExchangeDO::getMemberId, memberId)
+               .eq(PointsExchangeDO::getTenantId, TenantContext.getTenantId())
+               .orderByDesc(PointsExchangeDO::getId);
+        Page<PointsExchangeDO> page = pointsExchangeMapper.selectPage(
+                new Page<>(pageParam.pageNo(), pageParam.pageSize()), wrapper);
+        return PageResult.of(page.getRecords(), page.getTotal(), pageParam.pageSize());
     }
 }
