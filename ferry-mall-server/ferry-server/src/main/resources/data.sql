@@ -1,0 +1,12 @@
+INSERT INTO sys_user(id, username, password, nickname, status) VALUES (1, 'admin', '{noop}admin123', '系统管理员', 1);
+INSERT INTO product_category(id, parent_id, name, sort, visible) VALUES (1, 0, '数码家电', 1, 1), (2, 0, '食品生鲜', 2, 1), (3, 0, '服饰鞋包', 3, 1);
+INSERT INTO merchant_info(id, name, contact_name, contact_mobile, license_no, status) VALUES (1, '渡船自营', '平台运营', '13800000001', 'FERRY-SELF-001', 20), (2, '山谷生活馆', '王店长', '13800000002', 'VALLEY-STORE-001', 10);
+INSERT INTO store_info(id, merchant_id, name, logo_url, description, status, score) VALUES (1, 1, '渡船自营旗舰店', 'https://dummyimage.com/160x160/2563eb/fff&text=F', '平台自营品质好物', 1, 4.9), (2, 2, '山谷生活馆', 'https://dummyimage.com/160x160/16a34a/fff&text=S', '咖啡与生活方式集合店', 1, 4.8);
+INSERT INTO product_spu(id, category_id, store_id, name, subtitle, cover_url, price_cent, market_price_cent, stock, sales, status) VALUES (1, 1, 1, 'Ferry 智能手表', '轻量健康监测，多场景续航', 'https://dummyimage.com/600x600/f2f3f5/333&text=Watch', 39900, 49900, 120, 52, 1), (2, 2, 2, '山谷冷萃咖啡', '低温慢萃，12瓶装', 'https://dummyimage.com/600x600/f2f3f5/333&text=Coffee', 8900, 9900, 300, 168, 1), (3, 3, 1, '城市通勤双肩包', '防泼水面料，15寸电脑仓', 'https://dummyimage.com/600x600/f2f3f5/333&text=Bag', 15900, 19900, 80, 37, 1);
+INSERT INTO member_user(id, mobile, nickname, avatar_url, points, status) VALUES (10001, '13800000000', 'Ferry 用户', 'https://dummyimage.com/160x160/e5e7eb/333&text=U', 1280, 1);
+INSERT INTO order_info(id, order_no, member_id, pay_amount_cent, status, receiver_name, receiver_mobile, receiver_address) VALUES (1000, 'FM202605200001', 10001, 39900, 20, 'Ferry 用户', '13800000000', '上海市浦东新区 Ferry Road 1号');
+INSERT INTO settlement_bill(id, merchant_id, merchant_name, order_amount_cent, commission_cent, payable_cent, status) VALUES (1, 1, '渡船自营', 936800, 0, 936800, 20), (2, 2, '山谷生活馆', 268900, 13445, 255455, 10);
+INSERT INTO aftermarket_record(id, order_id, reason, status) VALUES (5000, 1000, '七天无理由', 10);
+INSERT INTO marketing_coupon(id, name, discount_cent, threshold_cent, total_count, received_count, status) VALUES (1, '新人满99减10', 1000, 9900, 10000, 36, 1), (2, '生鲜满199减30', 3000, 19900, 5000, 218, 1);
+INSERT INTO marketing_promotion(id, name, promotion_type, rule_json, status) VALUES (1, '夏日秒杀', 'SECKILL', '{"discount":0.8}', 1), (2, '双人成团', 'GROUPON', '{"groupSize":2}', 1);
+INSERT INTO payment_channel(id, channel_code, channel_name, enabled, config_json) VALUES (1, 'WECHAT_MOCK', '微信支付网关模拟通道', 1, '{}'), (2, 'ALI_MOCK', '支付宝网关模拟通道', 1, '{}');

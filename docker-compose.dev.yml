@@ -1,0 +1,30 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: ferry-mall-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ferry123
+      MYSQL_DATABASE: ferry_mall
+      TZ: Asia/Shanghai
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - ./design/sql/ferry_mall.sql:/docker-entrypoint-initdb.d/ferry_mall.sql:ro
+
+  redis:
+    image: redis:7-alpine
+    container_name: ferry-mall-redis
+    ports:
+      - "6379:6379"
+
+  minio:
+    image: minio/minio:latest
+    container_name: ferry-mall-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ferry
+      MINIO_ROOT_PASSWORD: ferry123456
+    command: server /data --console-address ":9001"

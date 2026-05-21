@@ -1,0 +1,34 @@
+{
+  "name": "ferry-mall-miniapp",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:weapp": "taro build --type weapp --watch",
+    "build:weapp": "taro build --type weapp",
+    "dev:h5": "taro build --type h5 --watch",
+    "build:h5": "taro build --type h5"
+  },
+  "dependencies": {
+    "@tarojs/components": "^4.0.7",
+    "@tarojs/helper": "^4.0.7",
+    "@tarojs/plugin-framework-vue3": "^4.0.7",
+    "@tarojs/plugin-html": "^4.0.7",
+    "@tarojs/plugin-platform-weapp": "^4.0.7",
+    "@tarojs/runtime": "^4.0.7",
+    "@tarojs/shared": "^4.0.7",
+    "@tarojs/taro": "^4.0.7",
+    "@vue/runtime-core": "^3.5.12",
+    "@vue/shared": "^3.5.12",
+    "pinia": "^2.2.4",
+    "vue": "^3.5.12"
+  },
+  "devDependencies": {
+    "@tarojs/cli": "^4.0.7",
+    "@tarojs/vite-runner": "^4.0.7",
+    "@types/node": "^22.7.7",
+    "@vitejs/plugin-vue": "^5.1.4",
+    "@vitejs/plugin-vue-jsx": "^4.0.1",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  }
+}
