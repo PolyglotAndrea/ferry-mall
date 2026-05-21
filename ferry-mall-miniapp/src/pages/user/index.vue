@@ -112,7 +112,10 @@
         </view>
         <view class="menu-item" @tap="goMessage">
           <text>&#x1F514; 消息通知</text>
-          <text class="arrow">&gt;</text>
+          <view class="menu-right">
+            <text v-if="unreadCount > 0" class="badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</text>
+            <text class="arrow">&gt;</text>
+          </view>
         </view>
         <view class="menu-item" @tap="goBindPhone">
           <text>&#x1F4F1; 绑定手机</text>
@@ -130,12 +133,28 @@
 <script setup lang="ts">
 import Taro from '@tarojs/taro'
 import { onShow } from '@tarojs/taro'
+import { ref } from 'vue'
 import { useUserStore } from '@/stores/user'
+import { getUnreadMessageCount } from '@/api/message'
 
 const user = useUserStore()
+const unreadCount = ref(0)
+
+async function fetchUnreadCount() {
+  if (!user.isLoggedIn) {
+    unreadCount.value = 0
+    return
+  }
+  try {
+    unreadCount.value = await getUnreadMessageCount()
+  } catch {
+    unreadCount.value = 0
+  }
+}
 
 onShow(() => {
   user.checkLogin()
+  fetchUnreadCount()
 })
 
 async function onLogin() {
@@ -146,6 +165,7 @@ function onLogout() {
   Taro.showModal({ title: '提示', content: '确定退出登录吗？', success: (res) => {
     if (res.confirm) {
       user.logout()
+      unreadCount.value = 0
       Taro.showToast({ title: '已退出', icon: 'success' })
     }
   }})
@@ -191,5 +211,7 @@ function goBindPhone() { Taro.navigateTo({ url: '/pages/bind/phone' }) }
 .menu-list { }
 .menu-item { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; border-bottom: 1px solid #f1f5f9; font-size: 28px; }
 .menu-item:last-child { border-bottom: 0; }
+.menu-right { display: flex; align-items: center; gap: 12px; }
 .arrow { color: #94a3b8; font-size: 28px; }
+.badge { min-width: 36px; height: 36px; line-height: 36px; padding: 0 10px; background: #ef4444; color: #fff; border-radius: 18px; font-size: 22px; font-weight: 700; text-align: center; }
 </style>

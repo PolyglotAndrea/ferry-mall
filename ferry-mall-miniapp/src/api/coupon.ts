@@ -25,3 +25,10 @@ export const receiveCoupon = (id: number) =>
 
 export const getMyCoupons = () =>
   request<MemberCoupon[]>('/app-api/marketing/member-coupon/list')
+
+export const getMyCouponsByStatus = (status?: number) => {
+  const url = status !== undefined
+    ? `/app-api/marketing/member-coupon/list?status=${status}`
+    : '/app-api/marketing/member-coupon/list'
+  return request<MemberCoupon[]>(url)
+}

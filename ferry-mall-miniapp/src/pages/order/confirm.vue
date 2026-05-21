@@ -35,7 +35,9 @@
     <!-- 优惠券 -->
     <view class="row-card" @tap="showCouponPicker = true">
       <text class="row-label">优惠券</text>
-      <text class="row-value">{{ selectedCoupon ? selectedCoupon.name : '未使用' }}</text>
+      <text class="row-value" :class="{ 'coupon-active': selectedCoupon }">
+        {{ selectedCoupon ? selectedCoupon.name : '未使用' }}
+      </text>
       <text class="arrow">&gt;</text>
     </view>
 
@@ -53,7 +55,7 @@
       </view>
       <view class="amount-row">
         <text>运费</text>
-        <text>免运费</text>
+        <text class="free">免运费</text>
       </view>
       <view v-if="selectedCoupon" class="amount-row discount">
         <text>优惠券</text>
@@ -78,10 +80,15 @@
       <view class="picker-panel" @tap.stop>
         <view class="picker-title">选择优惠券</view>
         <view v-if="availableCoupons.length === 0" class="picker-empty">暂无可用优惠券</view>
-        <view v-for="c in availableCoupons" :key="c.id" class="picker-item" @tap="selectCoupon(c)">
-          <text>{{ c.name }}</text>
-          <text v-if="selectedCoupon?.id === c.id" class="picker-check">&#x2713;</text>
-        </view>
+        <scroll-view scroll-y class="picker-list">
+          <view v-for="c in availableCoupons" :key="c.id" class="picker-item" @tap="selectCoupon(c)">
+            <view class="picker-coupon-info">
+              <text class="picker-coupon-name">{{ c.name }}</text>
+              <text class="picker-coupon-desc">满¥{{ (c.thresholdCent / 100).toFixed(0) }}减¥{{ (c.discountCent / 100).toFixed(0) }}</text>
+            </view>
+            <text v-if="selectedCoupon?.id === c.id" class="picker-check">&#x2713;</text>
+          </view>
+        </scroll-view>
         <view class="picker-btn" @tap="showCouponPicker = false">确定</view>
       </view>
     </view>
@@ -172,12 +179,13 @@ async function onSubmit() {
       address.value.name,
       address.value.mobile,
       `${address.value.province}${address.value.city}${address.value.district}${address.value.detail}`,
-      remark.value
+      remark.value,
+      selectedCoupon.value?.id
     )
     // 从购物车移除已结算商品
     goodsList.value.forEach(g => cart.remove(g.spuId, g.skuId))
     Taro.showToast({ title: '下单成功', icon: 'success' })
-    Taro.navigateTo({ url: `/pages/order/list` })
+    Taro.navigateTo({ url: `/pages/payment/pay?orderNo=${order.orderNo}` })
   } catch (e: any) {
     Taro.showToast({ title: e.message || '下单失败', icon: 'none' })
   }
@@ -206,11 +214,13 @@ async function onSubmit() {
 .row-card { display: flex; align-items: center; padding: 24px; background: #fff; border-radius: 16px; margin-bottom: 16px; }
 .row-label { font-size: 28px; font-weight: 600; width: 160px; flex-shrink: 0; }
 .row-value { flex: 1; font-size: 26px; color: #64748b; text-align: right; }
+.row-value.coupon-active { color: #ef4444; font-weight: 700; }
 .remark-input { flex: 1; font-size: 26px; margin-left: 16px; }
 .arrow { color: #94a3b8; font-size: 28px; margin-left: 8px; }
 .amount-card { padding: 24px; background: #fff; border-radius: 16px; }
 .amount-row { display: flex; justify-content: space-between; padding: 12px 0; font-size: 26px; color: #475569; }
 .amount-row.discount { color: #ef4444; }
+.amount-row .free { color: #22c55e; }
 .amount-row.total { border-top: 1px solid #f1f5f9; margin-top: 12px; padding-top: 20px; font-size: 28px; font-weight: 700; }
 .pay-amount { color: #ef4444; font-size: 36px; }
 .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; display: flex; align-items: center; padding: 16px 20px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid #f1f5f9; }
@@ -218,10 +228,14 @@ async function onSubmit() {
 .pay-price { font-size: 36px; color: #ef4444; font-weight: 700; }
 .submit-btn { padding: 18px 48px; background: #ef4444; color: #fff; border-radius: 36px; font-size: 28px; font-weight: 600; }
 .picker-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: flex-end; }
-.picker-panel { width: 100%; background: #fff; border-radius: 24px 24px 0 0; padding: 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+.picker-panel { width: 100%; background: #fff; border-radius: 24px 24px 0 0; padding: 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); max-height: 70vh; display: flex; flex-direction: column; }
 .picker-title { font-size: 32px; font-weight: 700; text-align: center; margin-bottom: 24px; }
 .picker-empty { text-align: center; color: #94a3b8; padding: 40px 0; }
-.picker-item { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; border-bottom: 1px solid #f1f5f9; font-size: 28px; }
-.picker-check { color: #2563eb; font-weight: 700; }
+.picker-list { max-height: 50vh; }
+.picker-item { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; border-bottom: 1px solid #f1f5f9; }
+.picker-coupon-info { display: flex; flex-direction: column; gap: 6px; }
+.picker-coupon-name { font-size: 28px; color: #1e293b; }
+.picker-coupon-desc { font-size: 24px; color: #94a3b8; }
+.picker-check { color: #2563eb; font-weight: 700; font-size: 28px; }
 .picker-btn { text-align: center; padding: 20px 0; background: #ef4444; color: #fff; border-radius: 40px; font-size: 30px; font-weight: 600; margin-top: 24px; }
 </style>

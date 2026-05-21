@@ -17,6 +17,9 @@ export interface SeckillProduct {
   stock: number
   sold: number
   status: number
+  coverUrl?: string
+  name?: string
+  marketPriceCent?: number
 }
 
 export interface GrouponActivity {
@@ -28,6 +31,8 @@ export interface GrouponActivity {
   startTime: string
   endTime: string
   status: number
+  coverUrl?: string
+  originalPriceCent?: number
 }
 
 export interface BargainActivity {
@@ -39,6 +44,7 @@ export interface BargainActivity {
   startTime: string
   endTime: string
   status: number
+  coverUrl?: string
 }
 
 export interface BargainRecord {

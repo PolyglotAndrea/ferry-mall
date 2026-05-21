@@ -25,6 +25,8 @@ export interface OrderResp {
   payTime: string | null
   deliveryTime: string | null
   receiveTime: string | null
+  cancelTime: string | null
+  cancelReason: string | null
   createdAt: string
   items: OrderItemResp[]
 }
@@ -32,13 +34,14 @@ export interface OrderResp {
 export interface PageResult<T> { list: T[]; total: number; pages: number }
 
 export const createOrder = (items: { spuId: number; skuId?: number; quantity: number }[],
-  receiverName: string, receiverMobile: string, receiverAddress: string, remark?: string) =>
+  receiverName: string, receiverMobile: string, receiverAddress: string, remark?: string, couponId?: number) =>
   request<OrderResp>('/app-api/order/create', 'POST', {
     items,
     receiverName,
     receiverMobile,
     receiverAddress,
-    remark
+    remark,
+    couponId
   })
 
 export const getOrderPage = (status?: number, pageNo = 1, pageSize = 10, keyword?: string) => {
@@ -58,3 +61,6 @@ export const cancelOrder = (orderNo: string, reason?: string) =>
 
 export const confirmReceive = (orderNo: string) =>
   request<OrderResp>(`/app-api/order/${orderNo}/receive`, 'POST')
+
+export const deleteOrder = (orderNo: string) =>
+  request<boolean>(`/app-api/order/${orderNo}/delete`, 'POST')
