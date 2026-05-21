@@ -6,6 +6,7 @@ export default defineAppConfig({
     'pages/user/index',
     'pages/product/detail',
     'pages/product/comment',
+    'pages/product/comment-post',
     'pages/order/confirm',
     'pages/order/list',
     'pages/order/detail',

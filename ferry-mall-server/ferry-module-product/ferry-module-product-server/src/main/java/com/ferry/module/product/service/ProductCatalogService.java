@@ -81,6 +81,13 @@ public class ProductCatalogService implements ProductCatalogApi {
         return new ProductCategoryResp(item.getId(), item.getParentId(), item.getName(), children);
     }
 
+    public List<ProductSpuDO> recommend(int limit) {
+        return productSpuMapper.selectList(new LambdaQueryWrapper<ProductSpuDO>()
+            .eq(ProductSpuDO::getStatus, 1)
+            .orderByDesc(ProductSpuDO::getSales)
+            .last("LIMIT " + limit));
+    }
+
     private ProductSpuSnapshot toProductResp(ProductSpuDO product) {
         return new ProductSpuSnapshot(product.getId(), product.getCategoryId(), product.getStoreId(), product.getName(), product.getSubtitle(), product.getCoverUrl(), product.getPriceCent(), product.getMarketPriceCent(), product.getStock(), product.getSales(), product.getStatus());
     }

@@ -4,7 +4,13 @@
       <div class="brand">Ferry Mall</div>
       <el-menu router default-active="/dashboard" background-color="#111827" text-color="#cbd5e1" active-text-color="#fff">
         <el-menu-item index="/dashboard"><el-icon><DataBoard /></el-icon><span>控制台</span></el-menu-item>
-        <el-menu-item index="/product/spu"><el-icon><Goods /></el-icon><span>商品列表</span></el-menu-item>
+        <el-sub-menu index="/product">
+          <template #title><el-icon><Goods /></el-icon><span>商品管理</span></template>
+          <el-menu-item index="/product/spu">商品列表</el-menu-item>
+          <el-menu-item index="/product/category">分类管理</el-menu-item>
+          <el-menu-item index="/product/banner">Banner 管理</el-menu-item>
+          <el-menu-item index="/product/comment">评价管理</el-menu-item>
+        </el-sub-menu>
         <el-menu-item index="/order/list"><el-icon><Tickets /></el-icon><span>订单列表</span></el-menu-item>
         <el-menu-item index="/member/list"><el-icon><User /></el-icon><span>会员列表</span></el-menu-item>
         <el-menu-item index="/merchant/list"><el-icon><OfficeBuilding /></el-icon><span>商家审核</span></el-menu-item>

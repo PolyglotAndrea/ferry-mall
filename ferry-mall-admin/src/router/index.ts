@@ -12,6 +12,9 @@ const router = createRouter({
       children: [
         { path: 'dashboard', component: () => import('@/views/dashboard/DashboardView.vue') },
         { path: 'product/spu', component: () => import('@/views/product/ProductListView.vue') },
+        { path: 'product/category', component: () => import('@/views/product/CategoryManageView.vue') },
+        { path: 'product/banner', component: () => import('@/views/product/BannerManageView.vue') },
+        { path: 'product/comment', component: () => import('@/views/product/CommentManageView.vue') },
         { path: 'order/list', component: () => import('@/views/order/OrderListView.vue') },
         { path: 'member/list', component: () => import('@/views/member/MemberListView.vue') },
         { path: 'merchant/list', component: () => import('@/views/merchant/MerchantListView.vue') },
