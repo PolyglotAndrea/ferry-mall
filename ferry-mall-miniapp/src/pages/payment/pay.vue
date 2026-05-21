@@ -46,8 +46,10 @@ async function onPay() {
   if (!order.value) return
   try {
     const prep = await preparePayment(order.value.orderNo, channel.value)
+    const orderNo = order.value.orderNo
+    const amount = order.value.payAmountCent
     if (channel.value === 'mock') {
-      Taro.redirectTo({ url: `/pages/payment/result?success=true&amount=${order.value.payAmountCent}` })
+      Taro.redirectTo({ url: `/pages/payment/result?success=true&amount=${amount}&orderNo=${orderNo}` })
     } else {
       // 真实微信支付
       Taro.requestPayment({
@@ -57,10 +59,10 @@ async function onPay() {
         signType: 'RSA',
         paySign: prep.paymentNo,
         success: () => {
-          Taro.redirectTo({ url: `/pages/payment/result?success=true&amount=${order.value.payAmountCent}` })
+          Taro.redirectTo({ url: `/pages/payment/result?success=true&amount=${amount}&orderNo=${orderNo}` })
         },
         fail: () => {
-          Taro.redirectTo({ url: `/pages/payment/result?success=false&amount=${order.value.payAmountCent}` })
+          Taro.redirectTo({ url: `/pages/payment/result?success=false&amount=${amount}&orderNo=${orderNo}` })
         }
       })
     }

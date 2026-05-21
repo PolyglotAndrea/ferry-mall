@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import Taro, { onShow } from '@tarojs/taro'
+import Taro from '@tarojs/taro'
 import { ref } from 'vue'
 import { getAddressList, deleteAddress, setDefaultAddress, type AddressItem } from '@/api/address'
 
@@ -47,7 +47,7 @@ async function fetch() {
     addresses.value = []
   }
 }
-onShow(() => fetch())
+Taro.useDidShow(() => fetch())
 
 function goEdit(a?: AddressItem) {
   const url = a ? `/pages/address/edit?id=${a.id}` : '/pages/address/edit'

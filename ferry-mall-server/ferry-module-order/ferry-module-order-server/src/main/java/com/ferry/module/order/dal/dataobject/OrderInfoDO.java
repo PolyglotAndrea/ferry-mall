@@ -22,6 +22,8 @@ public class OrderInfoDO {
     private String receiverMobile;
     private String receiverAddress;
     private String remark;
+    private String logisticsCompany;
+    private String logisticsNo;
     private LocalDateTime payTime;
     private LocalDateTime deliveryTime;
     private LocalDateTime receiveTime;

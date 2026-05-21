@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import Taro, { onShow } from '@tarojs/taro'
+import Taro from '@tarojs/taro'
 import { ref, reactive } from 'vue'
 import { getFavorites, removeFavorite, type FavoriteItem } from '@/api/favorite'
 
@@ -48,7 +48,7 @@ async function fetch() {
     favorites.value = []
   }
 }
-onShow(() => {
+Taro.useDidShow(() => {
   fetch()
   Object.keys(slideMap).forEach(k => { slideMap[Number(k)] = 0 })
 })

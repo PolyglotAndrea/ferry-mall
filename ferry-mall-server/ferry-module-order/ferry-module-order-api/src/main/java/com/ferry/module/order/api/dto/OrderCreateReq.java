@@ -10,5 +10,6 @@ public record OrderCreateReq(
     @NotBlank String receiverName,
     @NotBlank String receiverMobile,
     @NotBlank String receiverAddress,
-    String remark
+    String remark,
+    Long couponId
 ) {}

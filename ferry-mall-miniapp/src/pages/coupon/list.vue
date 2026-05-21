@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import Taro, { onShow } from '@tarojs/taro'
+import Taro from '@tarojs/taro'
 import { ref, reactive } from 'vue'
 import { getAvailableCoupons, receiveCoupon, type CouponResp } from '@/api/coupon'
 
@@ -45,7 +45,7 @@ async function fetch() {
     coupons.value = []
   }
 }
-onShow(() => fetch())
+Taro.useDidShow(() => fetch())
 
 async function receive(id: number) {
   if (receivedMap[id]) return

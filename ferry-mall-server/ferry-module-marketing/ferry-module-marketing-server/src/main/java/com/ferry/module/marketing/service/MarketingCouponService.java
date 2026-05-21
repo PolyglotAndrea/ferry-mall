@@ -3,6 +3,7 @@ package com.ferry.module.marketing.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.ferry.framework.web.exception.FerryBusinessException;
+import com.ferry.module.marketing.api.CouponApi;
 import com.ferry.module.marketing.api.dto.CouponResp;
 import com.ferry.module.marketing.dal.dataobject.MarketingCouponDO;
 import com.ferry.module.marketing.dal.dataobject.MemberCouponDO;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class MarketingCouponService {
+public class MarketingCouponService implements CouponApi {
     private final MarketingCouponMapper marketingCouponMapper;
     private final MemberCouponMapper memberCouponMapper;
 
@@ -59,5 +60,32 @@ public class MarketingCouponService {
         memberCouponMapper.insert(memberCoupon);
 
         return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int useCoupon(Long memberId, Long couponId, int totalAmountCent) {
+        MemberCouponDO memberCoupon = memberCouponMapper.selectOne(
+            new LambdaQueryWrapper<MemberCouponDO>()
+                .eq(MemberCouponDO::getId, couponId)
+                .eq(MemberCouponDO::getMemberId, memberId));
+
+        if (memberCoupon == null) {
+            throw new FerryBusinessException(404, "优惠券不存在");
+        }
+        if (memberCoupon.getStatus() != 1) {
+            throw new FerryBusinessException(400, "优惠券已被使用或已过期");
+        }
+        if (totalAmountCent < memberCoupon.getThresholdCent()) {
+            throw new FerryBusinessException(400,
+                "订单金额未满¥" + (memberCoupon.getThresholdCent() / 100.0) + "，无法使用该优惠券");
+        }
+
+        // 标记为已使用
+        memberCoupon.setStatus(2);
+        memberCoupon.setUsedTime(LocalDateTime.now());
+        memberCouponMapper.updateById(memberCoupon);
+
+        return memberCoupon.getDiscountCent();
     }
 }

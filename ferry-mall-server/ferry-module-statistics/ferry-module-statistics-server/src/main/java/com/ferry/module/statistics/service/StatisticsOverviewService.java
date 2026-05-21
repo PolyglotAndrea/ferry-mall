@@ -1,8 +1,7 @@
 package com.ferry.module.statistics.service;
 
-import com.ferry.framework.web.core.PageParam;
-import com.ferry.framework.web.core.PageResult;
 import com.ferry.module.statistics.api.dto.OverviewResp;
+import com.ferry.module.statistics.api.dto.PendingCountResp;
 import com.ferry.module.statistics.api.dto.ProductRankResp;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -50,9 +49,17 @@ public class StatisticsOverviewService {
             from order_info
             where status >= 20 and created_at >= date_sub(current_date, interval ? day)
             group by date(created_at)
-            order by day desc
+            order by day asc
             """;
         return jdbcTemplate.queryForList(sql, days);
+    }
+
+    public PendingCountResp pendingCount() {
+        Integer pendingShip = queryInt("select count(1) from order_info where status = 20");
+        Integer pendingAftermarket = queryInt("select count(1) from aftermarket_record where status = 10");
+        Integer pendingPayment = queryInt("select count(1) from order_info where status = 10");
+        Integer pendingSettlement = queryInt("select count(1) from settlement_bill where status = 10");
+        return new PendingCountResp(pendingShip, pendingAftermarket, pendingPayment, pendingSettlement);
     }
 
     private Integer queryInt(String sql) {

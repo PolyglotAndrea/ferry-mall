@@ -15,6 +15,8 @@ public record OrderResp(
     String receiverMobile,
     String receiverAddress,
     String remark,
+    String logisticsCompany,
+    String logisticsNo,
     LocalDateTime payTime,
     LocalDateTime deliveryTime,
     LocalDateTime receiveTime,

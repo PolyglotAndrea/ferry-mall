@@ -9,6 +9,7 @@ import com.ferry.module.product.api.ProductCatalogApi;
 import com.ferry.module.product.api.dto.ProductCategoryResp;
 import com.ferry.module.product.api.dto.ProductCreateReq;
 import com.ferry.module.product.api.dto.ProductSpuSnapshot;
+import com.ferry.module.product.api.dto.ProductUpdateReq;
 import com.ferry.module.product.dal.dataobject.ProductCategoryDO;
 import com.ferry.module.product.dal.dataobject.ProductSpuDO;
 import com.ferry.module.product.dal.mapper.ProductCategoryMapper;
@@ -41,12 +42,25 @@ public class ProductCatalogService implements ProductCatalogApi {
 
     @Override
     public PageResult<ProductSpuSnapshot> page(PageParam pageParam) {
-        return page(pageParam, null);
+        return page(pageParam, null, null, null);
     }
 
     public PageResult<ProductSpuSnapshot> page(PageParam pageParam, String sort) {
-        LambdaQueryWrapper<ProductSpuDO> wrapper = new LambdaQueryWrapper<ProductSpuDO>()
-            .eq(ProductSpuDO::getStatus, 1);
+        return page(pageParam, sort, null, null);
+    }
+
+    public PageResult<ProductSpuSnapshot> page(PageParam pageParam, String keyword, Long categoryId) {
+        return page(pageParam, null, keyword, categoryId);
+    }
+
+    public PageResult<ProductSpuSnapshot> page(PageParam pageParam, String sort, String keyword, Long categoryId) {
+        LambdaQueryWrapper<ProductSpuDO> wrapper = new LambdaQueryWrapper<>();
+        if (keyword != null && !keyword.isBlank()) {
+            wrapper.like(ProductSpuDO::getName, keyword);
+        }
+        if (categoryId != null) {
+            wrapper.eq(ProductSpuDO::getCategoryId, categoryId);
+        }
         if ("sales_desc".equals(sort)) {
             wrapper.orderByDesc(ProductSpuDO::getSales);
         } else if ("price_asc".equals(sort)) {
@@ -83,6 +97,44 @@ public class ProductCatalogService implements ProductCatalogApi {
         product.setSales(0);
         product.setStatus(1);
         productSpuMapper.insert(product);
+        return toProductResp(product);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public ProductSpuSnapshot update(Long id, ProductUpdateReq req) {
+        ProductSpuDO product = productSpuMapper.selectById(id);
+        if (product == null) {
+            throw new FerryBusinessException(404, "商品不存在");
+        }
+        product.setCategoryId(req.categoryId());
+        product.setName(req.name());
+        product.setSubtitle(req.subtitle());
+        product.setCoverUrl(req.coverUrl());
+        product.setPriceCent(req.priceCent());
+        product.setMarketPriceCent(req.marketPriceCent());
+        product.setStock(req.stock());
+        product.setStatus(req.status());
+        productSpuMapper.updateById(product);
+        return toProductResp(product);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void delete(Long id) {
+        ProductSpuDO product = productSpuMapper.selectById(id);
+        if (product == null) {
+            throw new FerryBusinessException(404, "商品不存在");
+        }
+        productSpuMapper.deleteById(id);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public ProductSpuSnapshot toggleStatus(Long id) {
+        ProductSpuDO product = productSpuMapper.selectById(id);
+        if (product == null) {
+            throw new FerryBusinessException(404, "商品不存在");
+        }
+        product.setStatus(Integer.valueOf(1).equals(product.getStatus()) ? 0 : 1);
+        productSpuMapper.updateById(product);
         return toProductResp(product);
     }
 

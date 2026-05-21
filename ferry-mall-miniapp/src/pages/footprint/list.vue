@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import Taro, { onShow } from '@tarojs/taro'
+import Taro from '@tarojs/taro'
 import { ref, computed } from 'vue'
 import { getFootprints, type FootprintItem } from '@/api/footprint'
 
@@ -56,7 +56,7 @@ async function fetch() {
     footprints.value = []
   }
 }
-onShow(() => fetch())
+Taro.useDidShow(() => fetch())
 
 function goDetail(id: number) {
   Taro.navigateTo({ url: `/pages/product/detail?id=${id}` })

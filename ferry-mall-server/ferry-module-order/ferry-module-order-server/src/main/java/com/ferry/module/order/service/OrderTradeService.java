@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ferry.framework.web.core.PageParam;
 import com.ferry.framework.web.core.PageResult;
 import com.ferry.framework.web.exception.FerryBusinessException;
+import com.ferry.module.marketing.api.CouponApi;
+import com.ferry.module.order.api.OrderApi;
 import com.ferry.module.order.api.dto.OrderCancelReq;
 import com.ferry.module.order.api.dto.OrderCreateReq;
 import com.ferry.module.order.api.dto.OrderItemCreateReq;
@@ -16,7 +18,6 @@ import com.ferry.module.order.dal.dataobject.OrderInfoDO;
 import com.ferry.module.order.dal.dataobject.OrderItemDO;
 import com.ferry.module.order.dal.mapper.OrderInfoMapper;
 import com.ferry.module.order.dal.mapper.OrderItemMapper;
-import com.ferry.module.order.api.OrderApi;
 import com.ferry.module.product.api.InventoryApi;
 import com.ferry.module.product.api.ProductCatalogApi;
 import com.ferry.module.product.api.dto.ProductSpuSnapshot;
@@ -35,13 +36,16 @@ public class OrderTradeService implements OrderApi {
     private final OrderItemMapper orderItemMapper;
     private final ProductCatalogApi productCatalogApi;
     private final InventoryApi inventoryApi;
+    private final CouponApi couponApi;
 
     public OrderTradeService(OrderInfoMapper orderInfoMapper, OrderItemMapper orderItemMapper,
-                             ProductCatalogApi productCatalogApi, InventoryApi inventoryApi) {
+                             ProductCatalogApi productCatalogApi, InventoryApi inventoryApi,
+                             CouponApi couponApi) {
         this.orderInfoMapper = orderInfoMapper;
         this.orderItemMapper = orderItemMapper;
         this.productCatalogApi = productCatalogApi;
         this.inventoryApi = inventoryApi;
+        this.couponApi = couponApi;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -70,13 +74,22 @@ public class OrderTradeService implements OrderApi {
             .mapToInt(i -> productMap.get(i.spuId()).priceCent() * i.quantity())
             .sum();
 
+        // 优惠券抵扣
+        int discountAmountCent = 0;
+        if (req.couponId() != null && req.couponId() > 0) {
+            discountAmountCent = couponApi.useCoupon(memberId, req.couponId(), totalAmountCent);
+        }
+
+        int payAmountCent = totalAmountCent - discountAmountCent;
+        if (payAmountCent < 0) payAmountCent = 0;
+
         String orderNo = generateOrderNo();
         OrderInfoDO order = new OrderInfoDO();
         order.setOrderNo(orderNo);
         order.setMemberId(memberId);
         order.setTotalAmountCent(totalAmountCent);
-        order.setDiscountAmountCent(0);
-        order.setPayAmountCent(totalAmountCent);
+        order.setDiscountAmountCent(discountAmountCent);
+        order.setPayAmountCent(payAmountCent);
         order.setStatus(OrderStatusMachine.PENDING_PAYMENT);
         order.setReceiverName(defaultIfBlank(req.receiverName(), "Ferry 用户"));
         order.setReceiverMobile(defaultIfBlank(req.receiverMobile(), "13800000000"));
@@ -165,6 +178,28 @@ public class OrderTradeService implements OrderApi {
         return detail(req.orderNo());
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public boolean delete(String orderNo) {
+        long memberId = currentMemberId();
+        OrderInfoDO order = orderInfoMapper.selectOne(
+            new LambdaQueryWrapper<OrderInfoDO>()
+                .eq(OrderInfoDO::getOrderNo, orderNo)
+                .eq(OrderInfoDO::getMemberId, memberId));
+        if (order == null) {
+            throw new FerryBusinessException(404, "订单不存在");
+        }
+        // 只允许删除已取消或已完成的订单
+        if (order.getStatus() != OrderStatusMachine.CANCELLED
+            && order.getStatus() != OrderStatusMachine.COMPLETED) {
+            throw new FerryBusinessException(400, "当前订单状态不允许删除");
+        }
+        // 物理删除商品明细 + 逻辑删除订单
+        orderItemMapper.delete(
+            new LambdaQueryWrapper<OrderItemDO>().eq(OrderItemDO::getOrderId, order.getId()));
+        orderInfoMapper.deleteById(order.getId());
+        return true;
+    }
+
     public OrderResp detail(String orderNo) {
         OrderInfoDO order = orderInfoMapper.selectOne(
             new LambdaQueryWrapper<OrderInfoDO>().eq(OrderInfoDO::getOrderNo, orderNo));
@@ -201,6 +236,45 @@ public class OrderTradeService implements OrderApi {
         return PageResult.of(list, page.getTotal(), pageParam.pageSize());
     }
 
+    // ========== Admin methods ==========
+
+    public PageResult<OrderResp> adminPage(PageParam pageParam, Integer status, String keyword) {
+        LambdaQueryWrapper<OrderInfoDO> wrapper = new LambdaQueryWrapper<OrderInfoDO>()
+            .orderByDesc(OrderInfoDO::getId);
+        if (status != null) {
+            wrapper.eq(OrderInfoDO::getStatus, status);
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            wrapper.like(OrderInfoDO::getOrderNo, keyword);
+        }
+        Page<OrderInfoDO> page = orderInfoMapper.selectPage(
+            new Page<>(pageParam.pageNo(), pageParam.pageSize()), wrapper);
+
+        List<Long> orderIds = page.getRecords().stream().map(OrderInfoDO::getId).toList();
+        Map<Long, List<OrderItemDO>> itemMap = orderItemMapper.selectList(
+                new LambdaQueryWrapper<OrderItemDO>().in(OrderItemDO::getOrderId, orderIds))
+            .stream().collect(Collectors.groupingBy(OrderItemDO::getOrderId));
+
+        List<OrderResp> list = page.getRecords().stream()
+            .map(o -> toResp(o, itemMap.getOrDefault(o.getId(), List.of())))
+            .toList();
+        return PageResult.of(list, page.getTotal(), pageParam.pageSize());
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public OrderResp deliver(String orderNo, String logisticsCompany, String logisticsNo) {
+        OrderInfoDO order = getByOrderNo(orderNo);
+        OrderStatusMachine.checkTransition(order.getStatus(), OrderStatusMachine.SHIPPED);
+
+        order.setStatus(OrderStatusMachine.SHIPPED);
+        order.setLogisticsCompany(logisticsCompany);
+        order.setLogisticsNo(logisticsNo);
+        order.setDeliveryTime(LocalDateTime.now());
+        orderInfoMapper.updateById(order);
+
+        return detail(orderNo);
+    }
+
     private OrderInfoDO getByOrderNo(String orderNo) {
         OrderInfoDO order = orderInfoMapper.selectOne(
             new LambdaQueryWrapper<OrderInfoDO>().eq(OrderInfoDO::getOrderNo, orderNo));
@@ -219,7 +293,8 @@ public class OrderTradeService implements OrderApi {
             o.getId(), o.getOrderNo(), o.getTotalAmountCent(), o.getDiscountAmountCent(),
             o.getPayAmountCent(), o.getStatus(), OrderStatusMachine.textOf(o.getStatus()),
             o.getReceiverName(), o.getReceiverMobile(), o.getReceiverAddress(),
-            o.getRemark(), o.getPayTime(), o.getDeliveryTime(), o.getReceiveTime(),
+            o.getRemark(), o.getLogisticsCompany(), o.getLogisticsNo(),
+            o.getPayTime(), o.getDeliveryTime(), o.getReceiveTime(),
             o.getCancelTime(), o.getCancelReason(), o.getCreatedAt(), itemResps);
     }
 

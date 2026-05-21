@@ -52,6 +52,11 @@ public class AppOrderController {
         return CommonResult.success(orderTradeService.cancel(req));
     }
 
+    @PostMapping("/{orderNo}/delete")
+    public CommonResult<Boolean> delete(@PathVariable String orderNo) {
+        return CommonResult.success(orderTradeService.delete(orderNo));
+    }
+
     @GetMapping("/{orderNo}")
     public CommonResult<OrderResp> detail(@PathVariable String orderNo) {
         return CommonResult.success(orderTradeService.detail(orderNo));

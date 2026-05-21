@@ -56,7 +56,7 @@ const loading = ref(false)
 async function fetch() {
   loading.value = true
   try {
-    const res = await request.get('/admin-api/product/comment/page')
+    const res = await request.get<any, { list: any[] }>('/admin-api/product/comment/page')
     comments.value = res.list
   } finally {
     loading.value = false

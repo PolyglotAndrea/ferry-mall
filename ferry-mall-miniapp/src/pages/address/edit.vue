@@ -20,7 +20,7 @@
       </view>
       <view class="form-row switch-row">
         <text class="label">设为默认地址</text>
-        <switch :checked="form.isDefault === 1" @change="form.isDefault = $event.detail.value ? 1 : 0" color="#2563eb" />
+        <switch :checked="form.isDefault === 1" @change="onSwitchChange" color="#2563eb" />
       </view>
     </view>
     <view class="submit-btn" @tap="onSubmit">保存</view>
@@ -136,6 +136,10 @@ useLoad(async (query) => {
 function onRegionChange(e: any) {
   const val = e.detail.value as number[]
   regionIndex.value = val
+}
+
+function onSwitchChange(e: any) {
+  form.value.isDefault = e.detail.value ? 1 : 0
 }
 
 function confirmRegion() {

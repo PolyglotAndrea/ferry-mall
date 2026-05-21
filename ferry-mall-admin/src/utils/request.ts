@@ -22,5 +22,13 @@ export const request = {
   async post<T = unknown, R = T>(url: string, data?: T, config?: AxiosRequestConfig): Promise<R> {
     const response = await client.post<CommonResult<R>>(url, data, config)
     return unwrap(response.data)
+  },
+  async put<T = unknown, R = T>(url: string, data?: T, config?: AxiosRequestConfig): Promise<R> {
+    const response = await client.put<CommonResult<R>>(url, data, config)
+    return unwrap(response.data)
+  },
+  async delete<T = unknown, R = T>(url: string, config?: AxiosRequestConfig): Promise<R> {
+    const response = await client.delete<CommonResult<R>>(url, config)
+    return unwrap(response.data)
   }
 }

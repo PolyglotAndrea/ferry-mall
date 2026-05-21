@@ -2,6 +2,7 @@ package com.ferry.module.statistics.controller.admin;
 
 import com.ferry.framework.web.core.CommonResult;
 import com.ferry.module.statistics.api.dto.OverviewResp;
+import com.ferry.module.statistics.api.dto.PendingCountResp;
 import com.ferry.module.statistics.api.dto.ProductRankResp;
 import com.ferry.module.statistics.service.StatisticsOverviewService;
 import java.util.List;
@@ -33,5 +34,10 @@ public class AdminStatisticsController {
     @GetMapping("/daily-sales")
     public CommonResult<List<Map<String, Object>>> dailySales(@RequestParam(defaultValue = "7") int days) {
         return CommonResult.success(statisticsOverviewService.dailySales(days));
+    }
+
+    @GetMapping("/pending-count")
+    public CommonResult<PendingCountResp> pendingCount() {
+        return CommonResult.success(statisticsOverviewService.pendingCount());
     }
 }
