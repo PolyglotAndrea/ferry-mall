@@ -1,6 +1,9 @@
 package com.ferry.module.member.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.ferry.framework.web.core.PageParam;
+import com.ferry.framework.web.core.PageResult;
 import com.ferry.framework.web.exception.FerryBusinessException;
 import com.ferry.framework.web.tenant.TenantContext;
 import com.ferry.module.member.dal.dataobject.MemberUserDO;
